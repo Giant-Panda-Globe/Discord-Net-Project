@@ -13,7 +13,7 @@ namespace DiscordNetTutorial.Bot.Core.Commands
         [Command("latency")]
         [Alias("ping")]
         [Summary("Displays the bot's latency in milliseconds.")]
-        public async Task LatencyCommand()
+        public async Task LatencyCommand() // +latency, +ping
         {
             var latency = Context.Client.Latency;
             var builder = new EmbedBuilder()
