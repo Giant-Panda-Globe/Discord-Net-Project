@@ -23,7 +23,7 @@ namespace DiscordNetTutorial.Bot.Core.Commands
         {
             _Logger = Services.GetRequiredService<ILogger>();
         }
-        // This Command doesn't work properly. It is not finding the user.
+
         [Command("addrole")]
         [Summary("Adds a role to a user.")]
         [RequireBotPermission(GuildPermission.ManageRoles, ErrorMessage = "", Group = "Permission")] // Needs to have Manage Roles so it can add the role to the suer.
@@ -32,45 +32,48 @@ namespace DiscordNetTutorial.Bot.Core.Commands
         [RequireOwner(Group = "Permission")] // Or Is the owner of the bot.
         public async Task AddRoleToUserAsync(string user, [Remainder] string role) // +addrole <user mention/user name/user id> <role id/role name>
         {
-            string username = "";
-            ulong userid = 0;
-            string rolename = "";
-            ulong roleid = 0;
+            string username = ""; // The user's name
+            ulong userid = 0; // The user's id
 
-            username = user;
-            rolename = role;
+            username = user; // Pass the user param into username.
+            if (ulong.TryParse(username, out ulong result)) // If parse passes, then pass out result.
+                userid = result; // pass result into userid.
+            // The user can't be a bot. Bots apparently are not consider not a user, so it will always be null if the user mentions a bot.
+            IGuildUser _user; // The user object.
 
-            if (ulong.TryParse(username, out ulong result))
-                userid = result;
-            if (ulong.TryParse(rolename, out ulong _result))
-                roleid = _result;
-            SocketGuildUser _user;
-            if (Context.Message.MentionedUsers.Count != 0)
+            if (Context.Message.MentionedUsers.Count != 0) // Checking if the message doesn't mention a user, if so, then we are going to use that to find the user.
                 _user = Context.Guild.GetUser(Context.Message.MentionedUsers.FirstOrDefault().Id);
-            else if (userid != 0)
+            else if (userid != 0) // if id is not equal to 0, then we are going search for the user by their id.
                 _user = Context.Guild.GetUser(userid);
-            else
-                _user = Context.Guild.Users.Where(x => x.Username.ToLower() == username.ToLower()).FirstOrDefault();
-            _Logger.Debug(username);
-            if(_user is null)
+            else // else we are going to search for the user by their username.
+                _user = Context.Guild.Users.Where(x => x.Username.ToLower().Equals(username.ToLower())).FirstOrDefault();
+
+            if(_user is null) // if user object is type of null.
             {
                 await ReplyAndDeleteAsync("I couldn't find that user", timeout: TimeSpan.FromSeconds(30));
                 return;
             }
+            string rolename = ""; // the role name.
+            ulong roleid = 0; // The role id.
 
-            SocketRole _role;
-            if (roleid != 0)
+            rolename = role; // pass the role name into name.
+            if (ulong.TryParse(rolename, out ulong _result)) // we are going to try and parse it, and pass it into a variable called result.
+                roleid = _result; // pass the results into id.
+
+
+            SocketRole _role; // the role.
+            if (roleid != 0) // if the role id is not 0, then we are going to use the id to find the role.
                 _role = Context.Guild.GetRole(roleid);
-            else
+            else // else we are going to search for the role by it's name.
                 _role = Context.Guild.Roles.Where(x => x.Name.ToLower() == rolename.ToLower()).FirstOrDefault();
 
-            if(_role is null)
+            if(_role is null) // if role is the type of null.
             {
                 await ReplyAndDeleteAsync("I couldn't find that role", timeout: TimeSpan.FromSeconds(30));
                 return;
             }
 
-            await _user.AddRoleAsync(_role);
+            await _user.AddRoleAsync(_role); // add the role to the user.
             await ReplyAndDeleteAsync($"Added role {_role.Name} to user {_user.Username}");
         }
 
