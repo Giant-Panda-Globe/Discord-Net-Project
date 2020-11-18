@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Discord;
 using Serilog.Core;
 using Serilog;
+using DiscordNetTutorial.Bot.Core.Systems;
 
 namespace DiscordNetTutorial.Bot.Core.Handlers
 {
@@ -17,13 +18,14 @@ namespace DiscordNetTutorial.Bot.Core.Handlers
         private CommandService Commands { get; set; }
         private IServiceProvider _Services { get; set; }
         private ILogger _Logger { get; set; }
-
+        private LevelSystem LvlSys { get; set; }
         public EventHandler(IServiceProvider Services, ILogger Logger)
         {
             Client = Services.GetRequiredService<DiscordSocketClient>();
             Commands = Services.GetRequiredService<CommandService>();
             _Logger = Logger;
             _Services = Services;
+            LvlSys = new LevelSystem();
         }
 
         public Task InitAsync()
@@ -44,7 +46,21 @@ namespace DiscordNetTutorial.Bot.Core.Handlers
             var Message = MessageParam as SocketUserMessage;
             var Context = new SocketCommandContext(Client, Message);
             if (Message.Author.IsBot || Message.Channel is SocketDMChannel) return; // Checks if the user is a bot or if the channel is a dm channel. if so then return;
+            LvlSys.AddXp(Context.User.Id, 1);
+            if (LvlSys.CheckIfPlayerCanLevelUp(Context.User.Id))
+            {
+                LvlSys.LeveledUp(Context.User.Id);
+                var player = new DAL.Databases.PlayerDatabase().GetPlayer(Context.User.Id);
+                EmbedBuilder builder = new EmbedBuilder
+                {
+                    Title = "Leveled Up",
+                    Author = new EmbedAuthorBuilder { Name = Context.User.Username },
+                    Description = $"Now Level {player.Level}\nYou received {player.Level * 100} coins.",
+                    Color = Color.Green
+                };
 
+                await Context.Channel.SendMessageAsync(embed: builder.Build());
+            }
             int ArgPos = 0; // The argument position.
             // Checks if the message contains our prefix or mentions the bot. if not, then return.
             if (!(Message.HasStringPrefix(Config.Bot.Prefix, ref ArgPos) || Message.HasMentionPrefix(Client.CurrentUser, ref ArgPos))) return;

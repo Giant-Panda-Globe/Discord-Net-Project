@@ -109,7 +109,7 @@ namespace DiscordNetTutorial.Bot.Core.Commands
 
             string name = input.Content; // The name they want the role to be.
             // Checks if the role name already exist, if so then we are not going to continue, else its safe to do so.
-            if(Context.Guild.Roles.Where(x => x.Name.ToLower() == name.ToLower()).FirstOrDefault() is SocketRole)
+            if (Context.Guild.Roles.Where(x => x.Name.ToLower() == name.ToLower()).FirstOrDefault() is SocketRole)
             {
                 if (Context.Guild.CurrentUser.GetPermissions(Context.Channel as IGuildChannel).ManageMessages)
                     foreach (var message in userMessage)
@@ -125,7 +125,7 @@ namespace DiscordNetTutorial.Bot.Core.Commands
             selfMessage.Add(msg);
             userMessage.Add(input);
             string color = ""; // the color they wish to use for the role.
-            if(input.Content.ToLower().Equals("<cancel>")) // <cancel>
+            if (input.Content.ToLower().Equals("<cancel>")) // <cancel>
             {
                 if (Context.Guild.CurrentUser.GetPermissions(Context.Channel as IGuildChannel).ManageMessages)
                     foreach (var message in userMessage)
@@ -135,7 +135,7 @@ namespace DiscordNetTutorial.Bot.Core.Commands
                 await ReplyAndDeleteAsync("Cancelled", timeout: TimeSpan.FromSeconds(30));
                 return;
             }
-            if(input.Content.ToLower().Equals("yes") || input.Content.ToLower().Equals("y")) // yes, y
+            if (input.Content.ToLower().Equals("yes") || input.Content.ToLower().Equals("y")) // yes, y
             {
                 // What color would they like to use.
                 msg = await Context.Channel.SendMessageAsync("What color would you like the role to have?\nTo Cancel type in `<cancel>`");
@@ -143,7 +143,7 @@ namespace DiscordNetTutorial.Bot.Core.Commands
                 selfMessage.Add(msg);
                 userMessage.Add(input);
 
-                if(input.Content.ToLower().Equals("<cancel>")) // <cancel>
+                if (input.Content.ToLower().Equals("<cancel>")) // <cancel>
                 {
                     if (Context.Guild.CurrentUser.GetPermissions(Context.Channel as IGuildChannel).ManageMessages)
                         foreach (var message in userMessage)
@@ -156,8 +156,31 @@ namespace DiscordNetTutorial.Bot.Core.Commands
 
                 color = input.Content; // Pass the selection into the variable called color.
             }
+
+            msg = await Context.Channel.SendMessageAsync("Would you like the role to be mentionable?(y/n)\nTo cancel type in `<cancel>`.");
+            input = await NextMessageAsync();
+
+            selfMessage.Add(msg);
+            userMessage.Add(input);
+            bool isMentionable = false;
+            if (input.Content.ToLower().Equals("<cancel>"))
+            {
+                if (Context.Guild.CurrentUser.GetPermissions(Context.Channel as IGuildChannel).ManageMessages)
+                    foreach (var message in userMessage)
+                        await message.DeleteAsync();
+                foreach (var message in selfMessage)
+                    await message.DeleteAsync();
+                await ReplyAndDeleteAsync("Cancelled", timeout: TimeSpan.FromSeconds(30));
+                return;
+            }
+
+            if (input.Content.ToLower().Equals("yes") || input.Content.ToLower().Equals("y"))
+            {
+                isMentionable = true;
+            }
+
             // if color is string or is null, then we are going to create role with no color.
-            if(string.IsNullOrWhiteSpace(color))
+            if (string.IsNullOrWhiteSpace(color))
                 await Context.Guild.CreateRoleAsync(name, null, null, false, null);
             // else we are going to create role with color.
             else
@@ -167,6 +190,15 @@ namespace DiscordNetTutorial.Bot.Core.Commands
                 Discord.Color _color = new Discord.Color(htmlColor.R, htmlColor.G, htmlColor.B);
                 await Context.Guild.CreateRoleAsync(name, null, _color, false, null);
             }
+
+            if (isMentionable)
+            {
+                var role = Context.Guild.Roles.Where(x => x.Name.ToLower().Equals(name)).FirstOrDefault();
+                if (role is null)
+                    await ReplyAndDeleteAsync("Something happened, and i wasn't able to make the role mentionable at this time. Please try using my `editrole` command to make it mentionable if you wish.", timeout: TimeSpan.FromSeconds(30));
+                else
+                    await role.ModifyAsync(x => x.Mentionable = true);
+            }
             // Confirmation Message.
             await ReplyAndDeleteAsync($"Role named: {name} was created.", timeout: TimeSpan.FromSeconds(30));
             if (Context.Guild.CurrentUser.GetPermissions(Context.Channel as IGuildChannel).ManageMessages)
@@ -175,6 +207,35 @@ namespace DiscordNetTutorial.Bot.Core.Commands
             foreach (var message in selfMessage)
                 await message.DeleteAsync();
 
+        }
+
+        [Command("deleterole")]
+        [RequireBotPermission(GuildPermission.ManageRoles, ErrorMessage ="", Group = "Permission")]
+        [RequireUserPermission(GuildPermission.ManageRoles, ErrorMessage = "", Group = "Permission")]
+        [RequireUserPermission(GuildPermission.Administrator, ErrorMessage = "", Group = "Permission")]
+        [RequireOwner(Group = "Permission")]
+        public async Task DeleteRoleAsync([Remainder] string role)
+        {
+            string name = "";
+            ulong id = 0;
+            
+            name = role;
+            
+            if (ulong.TryParse(name, out ulong result))
+                id = result;
+            SocketRole _role;
+            if (id != 0)
+                _role = Context.Guild.GetRole(id);
+            else
+                _role = Context.Guild.Roles.Where(x => x.Name.ToLower().Equals(name.ToLower())).FirstOrDefault();
+
+            if(_role is null)
+            {
+                await ReplyAndDeleteAsync("Couldn't find that role.", timeout: TimeSpan.FromSeconds(30));
+                return;
+            }
+            await ReplyAndDeleteAsync($"Deleted role {_role.Name}!", timeout: TimeSpan.FromSeconds(30));
+            await _role.DeleteAsync();
         }
 
         [Command("editrole")]
@@ -267,6 +328,24 @@ namespace DiscordNetTutorial.Bot.Core.Commands
                     foreach (var message in selfMessages)
                         await message.DeleteAsync();
                     break; // Break out of the Switch case.
+                case "mention":
+                    msg = await Context.Channel.SendMessageAsync($"The role is {(!_role.IsMentionable ? "mentionable" : "not mentionable")}\n Would you like to {(_role.IsMentionable ? "make this role be mentionable" : "make this role not be mentionable")}?(y/n)\nTo cancel type in `<cancel>`");
+                    input = await NextMessageAsync();
+                    if (input.Content.ToLower().Equals("<cancel>"))
+                    {
+
+                    }
+                    if(input.Content.ToLower().Equals("yes") || input.Content.ToLower().Equals("y"))
+                    {
+                        if (Context.Guild.CurrentUser.GetPermissions(Context.Channel as IGuildChannel).ManageMessages)
+                            foreach (var message in userMessages)
+                                await message.DeleteAsync();
+                        foreach (var message in selfMessages)
+                            await message.DeleteAsync();
+                        await _role.ModifyAsync(x => x.Mentionable = !_role.IsMentionable);
+                        await ReplyAndDeleteAsync($"The role is now {(_role.IsMentionable ? "not mentionable" : "mentionable")}.", timeout: TimeSpan.FromSeconds(30));
+                    }
+                    break;
             }
         }
 

@@ -1,0 +1,9 @@
+C:\Users\korea\source\repos\DiscordNetTutorial.Bot\DiscordNetTutorial.DAL\bin\Debug\netcoreapp3.1\DiscordNetTutorial.DAL.deps.json
+C:\Users\korea\source\repos\DiscordNetTutorial.Bot\DiscordNetTutorial.DAL\bin\Debug\netcoreapp3.1\DiscordNetTutorial.DAL.dll
+C:\Users\korea\source\repos\DiscordNetTutorial.Bot\DiscordNetTutorial.DAL\obj\Debug\netcoreapp3.1\DiscordNetTutorial.DAL.csprojAssemblyReference.cache
+C:\Users\korea\source\repos\DiscordNetTutorial.Bot\DiscordNetTutorial.DAL\obj\Debug\netcoreapp3.1\DiscordNetTutorial.DAL.AssemblyInfoInputs.cache
+C:\Users\korea\source\repos\DiscordNetTutorial.Bot\DiscordNetTutorial.DAL\obj\Debug\netcoreapp3.1\DiscordNetTutorial.DAL.AssemblyInfo.cs
+C:\Users\korea\source\repos\DiscordNetTutorial.Bot\DiscordNetTutorial.DAL\bin\Debug\netcoreapp3.1\DiscordNetTutorial.DAL.pdb
+C:\Users\korea\source\repos\DiscordNetTutorial.Bot\DiscordNetTutorial.DAL\obj\Debug\netcoreapp3.1\DiscordNetTutorial.DAL.csproj.CoreCompileInputs.cache
+C:\Users\korea\source\repos\DiscordNetTutorial.Bot\DiscordNetTutorial.DAL\obj\Debug\netcoreapp3.1\DiscordNetTutorial.DAL.dll
+C:\Users\korea\source\repos\DiscordNetTutorial.Bot\DiscordNetTutorial.DAL\obj\Debug\netcoreapp3.1\DiscordNetTutorial.DAL.pdb
